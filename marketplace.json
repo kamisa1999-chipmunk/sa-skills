@@ -1,0 +1,9 @@
+{
+  "name": "sa-skills",
+  "plugins": [
+    {
+      "name": "sa-skills",
+      "source": "."
+    }
+  ]
+}

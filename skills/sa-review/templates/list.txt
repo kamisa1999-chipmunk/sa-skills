@@ -1,0 +1,13 @@
+TITLE: 📄 Шаблоны/Template
+VERSION: 80
+WHEN: 2026-02-06T16:10:12.957+05:00
+URL: https://confluence.goldapple.ru/pages/viewpage.action?pageId=640047269
+LABELS: 
+
+INLINE Создание страниц
+Страница создается в корне раздела, в котором вы находитесь.
+Нажать на для добавления новой страницы в нужном разделе. Выбрать нужный вам шаблон. Нажать "Создать".
+
+Дочерние страницы
+2
+true 2 template.tags true auto page

@@ -1,0 +1,6 @@
+{
+  "name": "sa-skills",
+  "version": "1.0.0",
+  "description": "SA-скиллы: ревью системной аналитики по чек-листу закрытия SA. Jira/Confluence — через MCP или CLI из соседнего репозитория jira-write.",
+  "skills": "skills"
+}
