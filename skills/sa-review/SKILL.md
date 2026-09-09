@@ -28,7 +28,7 @@ checklist-close-sa.md
 
 Связка: этот скилл не пишет спеки и не публикует. Комментарий в Jira — только через скилл `jira-write` (репозиторий `jira-write`) после подтверждения. `jira-history` — только уровень 4 в `evidence-and-context.md`.
 
-Jira и Confluence читать так: сначала уже доступный в окружении источник (MCP, connector, встроенный tool); если подходящего нет — локальный fallback из репозитория. Команды `get_issue.py` и `dump_confluence_page.py` не обязательны. Выбор источника, обязательные поля и режимы установки — в `sources.md`.
+Jira и Confluence читать так: сначала уже доступный в окружении источник (MCP, connector, встроенный tool); если подходящего нет — локальный fallback из репозитория `jira-write`. Команды `get_issue.py` и `dump_confluence_page.py` не обязательны. Выбор источника, обязательные поля и режимы установки — в `sources.md`.
 
 ## Режимы
 
