@@ -231,6 +231,9 @@ Skill сначала формирует полный набор findings, поэ
 Упрощённо pipeline выглядит так:
 
 ```text
+вопрос: анализ решения на соответствие архитектуре?
+  ↓ нет → сразу ревью документации
+  ↓ да  → Architecture validation, затем ревью
 режим
   ↓
 Jira + SA checklist
@@ -351,6 +354,7 @@ sa-skills/
 ├── README.md
 ├── skills/sa-review/
 │   ├── SKILL.md
+│   ├── architecture-validation.md
 │   ├── sources.md
 │   ├── applicability.md
 │   ├── evidence-and-context.md
