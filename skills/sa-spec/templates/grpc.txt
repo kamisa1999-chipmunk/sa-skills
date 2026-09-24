@@ -1,0 +1,196 @@
+TITLE: Шаблон.Описание BACK-методы (gRPC)
+VERSION: 21
+WHEN: 2026-08-20T17:29:20.277+05:00
+URL: https://confluence.goldapple.ru/pages/viewpage.action?pageId=721139215
+LABELS: grpc, file-not-found
+
+Пример описания
+
+4
+
+Команда Ссылка на команду
+Метод Название метода GRPC
+Описание краткое описание метода, нужен для того-то и того.
+Proto url
+Примечание какие-то ограничения или важные условия
+Структура БД Ссылка на документацию, где описана структура используемых хранилищ данных (MongoDB /SQL/Elastic/Redis ( 🛢 DataBases/Collections ) для построения LinkGraph
+Структура топиков Ссылка на документацию, где описана структура используемых топиков ( Topics ) для построения LinkGraph
+Фичи Ссылки на фичи, в которых используется метод (Story в Jira)
+Задачи Ссылки на задачи, в которых создается / дорабатывается API (Задачи на системный анализ и/или разработку)
+Использование Собирается автоматически, подробнее см. Макрос LinkGraph
+
+Входящие связи 0 SVG
+
+Схема *
+
+INLINE @startuml
+
+box Plaid.ApiGateways/Bff #f5f5f5
+participant "Any.Bff"                                as bff #DAE8FC
+end box
+
+box Plaid.AdminApp #f5f5f5
+participant "AdminUI"                                as adminapp #DAE8FC
+end box
+
+box Plaid.Services #fae2e1
+participant "anyService"                             as api #E1D5E7
+end box
+
+box MongoDB: plaid_db_name #ebe1ae
+collections "CollectionName"                         as collection #f2ebc9
+end box
+
+==Пример вызова с bff==
+
+bff -> api: Запрос на получение\n<b>AnyServiceApi.GetEntityByIds</b>\n<i>[ids...]</i>\n<i>platform</i>
+activate api
+
+break#f7b492 <font color=red><b>Валидация запроса!</b></font>\n1. Массив ids!=[]\n2. Проверка имеющихся в запросе ids на соответствие формату\n3. Наличие платформы в запросе
+api --> bff: <i>errorCode</i>\nerrorMessage
+end
+api -> api: поиск Ids в кэше
+
+loop Для каждого не найденного в кэше Id
+api -> collection: получить объект сущности по id
+activate collection
+collection-->api: <i>db.Entity.params[...]</i>
+deactivate collection
+end
+note left
+Цикличное выполнение по условию
+end note
+alt Если только 1 элемент массива
+api -> api: что-то сделать
+else Если  только 2 элемента массива
+api -> api: что-то сделать другое
+else Если только 3 элемента массива
+api -> api: что-то сделать совсем другое
+
+end
+note left
+Условие с альтернативными вариантами
+end note
+opt Если > 3х элементов массива или если массив пуст
+api -> collection: очистить <i>db.Entity.params[...]</i> и записать один параметр
+activate collection
+collection-->api: Успех
+deactivate collection
+end
+note left
+Опционально
+end note
+
+api -> bff: 0 OK
+deactivate api
+
+==Пример вызова с AdminApp==
+
+adminapp -> api: Запрос на получение\n<b>AnyServiceApi.GetEntityByIds</b>\n<i>[ids...]</i>\n<i>platform</i>
+activate api
+
+break#f7b492 <font color=red><b>Валидация запроса!</b></font>\n1. Массив ids!=[]\n2. Проверка имеющихся в запросе ids на соответствие формату\n3. Наличие платформы в запросе
+api --> adminapp: <i>errorCode</i>\nerrorMessage
+end
+api -> api: какой-то алгоритм
+
+api -> adminapp: 0 OK
+deactivate api
+
+@enduml
+
+Алгоритм работы *
+Сценарий 1: Вызов из BFF
+1. Инициация запроса
+BFF отправляет запрос к сервису  на получение сущностей ( ).
+2. Валидация запроса
+Сервис проверяет корректность запроса:
+Массив  ids[]  не должен быть пустым.
+Все переданные  ids  должны соответствовать ожидаемому формату.
+Параметр  platform  должен быть указан.
+В случае ошибки валидации:
+Возвращается ошибка ( errorCode ) с сообщением ( errorMessage ).
+3. Поиск данных в кэше
+Сервис проверяет наличие запрошенных  ids  в кэше.
+Для каждого  id , отсутствующего в кэше:
+Запрос сущности из БД:
+Обращение к коллекции   для получения данных ( db.Entity.params[...] ).
+4. Обработка результатов
+В зависимости от количества элементов в массиве  ids :
+Если 1 элемент: выполняется действие "что-то сделать".
+Если 2 элемента: выполняется действие "что-то сделать другое".
+Если 3 элемента: выполняется действие "что-то сделать совсем другое".
+Опционально (если >3 элементов или массив пуст):
+Очистка параметров сущности ( db.Entity.params[...] ) и запись одного параметра.
+5. Возврат результата
+Сервис возвращает BFF код  0 OK .
+Сценарий 2: Вызов из AdminUI
+1. Инициация запроса
+AdminUI отправляет аналогичный запрос к сервису .
+2. Валидация запроса
+Проверка аналогична сценарию с BFF.
+3. Выполнение алгоритма
+Сервис выполняет "какой-то алгоритм" (детали не указаны).
+4. Возврат результата
+Сервис возвращает AdminUI код  0 OK .
+Детализация
+
+любые дополнительные данные, которые вы считаете важными для метода
+Описание параметров *
+
+INLINE
+
+proto //Если еще нет в гите
+json proto //Если уже есть в гите вставить файл в гит
+media-dev Plaid / Plaid src/Services/MultiMedia/MultiMedia.API/Protos/multiMediaApi.proto 580 Plaid None
+
+false Параметры запроса
+
+json Пример true
+
+Параметр Тип данных Обязательность Описание Примеры значений
+id string true Идентификатор сущности kakayatosol
+array[] array true массив с цифрами которые необходимо сохранить -
+array[].[n] number true ... 1, 2, 3
+object object
+... -
+object.stringValue string
+... string
+object.numberValue number
+... 1
+object.boolValue boolean
+... true
+object.array[] array
+... -
+object.array[].[n] string
+... 1, 2, 3
+
+false Параметры ответа
+
+json Пример true
+
+Параметр Тип данных Обязательность Описание Примеры значений Маппинг
+id string true
+kakayatosol bd.collection.id
+array[] array true
+- -
+array[].[n] number true
+1, 2, 3 Все элементы массива db.collection1.numArray[]
+object object
+
+- ...
+object.stringValue string
+
+string ...
+object.numberValue number
+
+1 ...
+object.boolValue boolean
+
+true ...
+object.array[] array
+
+- ...
+object.array[].[n] string
+
+1, 2, 3 ...

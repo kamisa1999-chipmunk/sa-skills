@@ -1,0 +1,59 @@
+TITLE: Шаблон.Описание топика
+VERSION: 12
+WHEN: 2026-01-29T12:19:33.460+05:00
+URL: https://confluence.goldapple.ru/pages/viewpage.action?pageId=671395204
+LABELS: topic
+
+Это образец для обучения, страницу надо создавать из шаблонов  684523526 684523526 Команда.Название топика Шаблон.Описание топика
+Инструкция для создания шаблона
+
+Описание краткая суть для чего используется текущий топик
+Команда Ссылка на 🤼‍♂️ Команды
+Фичи Ссылки на фичи
+Методы/сервисы Ссылки на Plaid.ApiGateways/Bff или
+Задачи Ссылки на задачи
+
+Использование Собирается автоматически, подробнее см. Макрос LinkGraph
+
+Входящие связи 0 SVG
+
+Общая информация
+Описание запроса Краткое описание для чего используется тип сообщения Входящий в D365 запрос на отмену заказа из ЛК или из Единого окна КЦ Исходящий из D365 запрос в WMS-системы об отмене заказа Входящий в D365 отклик из WMS-системы о возможности отмены заказа
+Источник запроса Перечисление источников, из которых поступает информация для заполнения. plaid CallCenter D365 Picklo Axelot
+Триггер
+
+Потребитель
+
+Заголовок сообщения
+Поле Описание Значение/комментарий
+class класс сообщения WebshopOrderCancel AxWMSPickingRouteCancel AxWMSPickingRouteCancelReply
+guid идентификатор сообщения Kafka
+
+source отправитель сообщения plaid CallCenter АХ
+Picklo Axelot
+activityId идентификатор
+идентификатор заказа SalesTable.GDA_ImportGUID идентификатор отгрузочной накладной WMSPickingRoute.BRO_ActivityId идентификатор отгрузочной накладной WMSPickingRoute.BRO_ActivityId
+webStore компания, в которой находится заказ base kazakhstan belarus Не используется
+Строки сообщения
+orderNumber номер заказа заполняется номером заказа SalesTable.SalesId заполняется номером заказа SalesTable.SalesId заполняется номером заказа SalesTable.SalesId
+shipmentId номер отгрузки по заказу Не используется заполняется номером отгрузки по заказу WMSPickingRoute.ShipmentId заполняется номером отгрузки по заказу WMSPickingRoute.ShipmentId
+custAccount
+заполняется WMSPickingRoute.Customer заполняется WMSPickingRoute.Customer
+Примеры
+Пример заголовка
+Пример контракта, где источник plaid
+json Eclipse Заголовок true
+
+Пример контракта, где получатель Axelot
+json Eclipse Заголовок true
+
+Пример контракта, где источник Picklo
+json Eclipse Заголовок true
+
+Пример сообщения
+
+json Eclipse Данные true
+
+json Eclipse Данные true
+
+json Eclipse Данные true

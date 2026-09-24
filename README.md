@@ -1,3 +1,33 @@
+# SA skills
+
+Пайплайн системной аналитики: черновики, ревью, публикация.
+
+```text
+sa-spec  →  sa-review (self-check)  →  утверждение  →  sa-publish
+```
+
+Оркестратор одной командой — скилл `sa`. Ниже подробно описан `sa-review`. `sa-spec` и `sa-publish` лежат рядом и будут дорабатываться.
+
+| Skill | Папка | Что делает |
+| --- | --- | --- |
+| `sa-spec` | `skills/sa-spec/` | локальные Markdown-черновики, вопросы, решения. Не публикует |
+| `sa-review` | `skills/sa-review/` | ревью по чек-листу закрытия SA |
+| `sa-publish` | `skills/sa-publish/` | preview и публикация утверждённых артефактов в Confluence и Git |
+| `sa` | `skills/sa/` | ведёт цепочку и останавливается на утверждении и на preview |
+
+Рабочие черновики: `sa-work/<ISSUE-KEY>/` в workspace. Клиенты Jira/Confluence — MCP или соседний [`jira-write`](https://github.com/kamisa1999-chipmunk/jira-write).
+
+```bash
+git clone https://github.com/kamisa1999-chipmunk/sa-skills.git
+cd sa-skills
+mkdir -p ~/.cursor/skills
+for skill in sa sa-spec sa-review sa-publish; do
+  ln -sfn "$(pwd)/skills/$skill" ~/.cursor/skills/$skill
+done
+```
+
+---
+
 # SA Review
 
 `sa-review` — skill для ревью системной аналитики по Jira-задаче и связанным спецификациям.
@@ -352,6 +382,9 @@ Skill несколько раз прогонялся на одной и той �
 ```text
 sa-skills/
 ├── README.md
+├── skills/sa/
+├── skills/sa-spec/
+├── skills/sa-publish/
 ├── skills/sa-review/
 │   ├── SKILL.md
 │   ├── architecture-validation.md

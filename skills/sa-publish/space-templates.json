@@ -1,0 +1,37 @@
+{
+  "http": {
+    "templateId": "663027717",
+    "name": "Шаболон.BACK-методов/BFF",
+    "labels": ["http"]
+  },
+  "grpc": {
+    "templateId": "726630404",
+    "name": "Шаблон. Описание gRPC процедуры",
+    "labels": ["grpc"]
+  },
+  "feature": {
+    "templateId": "663027713",
+    "name": "Шаблон.Документация фичи",
+    "labels": ["feature"]
+  },
+  "db": {
+    "templateId": "663027724",
+    "name": "Шаблон.Описание коллекции",
+    "labels": ["collection"]
+  },
+  "kafka": {
+    "templateId": "684523526",
+    "name": "Шаблон.Описание топика",
+    "labels": ["topic"]
+  },
+  "ui": {
+    "templateId": "781942788",
+    "name": "Шаблон. UI спецификации",
+    "labels": ["ui-component"]
+  },
+  "admin": {
+    "templateId": "702971918",
+    "name": "Шаблон.Документация PlaidAdminApp",
+    "labels": ["adminapp"]
+  }
+}
