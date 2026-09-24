@@ -1,19 +1,20 @@
 # SA skills
 
-Пайплайн системной аналитики: черновики, ревью, публикация.
+Пайплайн системной аналитики: сначала план, потом черновик, чтение, независимое ревью, затем публикация.
 
 ```text
-sa-spec  →  sa-review (self-check)  →  утверждение  →  sa-publish
+research → artifact-plan → подтверждение → redline
+→ человек читает → sa-review → правки → утверждение → finalize
 ```
 
-Оркестратор одной командой — скилл `sa`. Ниже подробно описан `sa-review`. `sa-spec` и `sa-publish` лежат рядом и будут дорабатываться.
+Оркестратор одной командой — скилл `sa`. Ниже подробно описан `sa-review`: его логика не упрощается и остаётся независимым этапом.
 
 | Skill | Папка | Что делает |
 | --- | --- | --- |
-| `sa-spec` | `skills/sa-spec/` | локальные Markdown-черновики, вопросы, решения. Не публикует |
+| `sa-spec` | `skills/sa-spec/` | research, artifact plan, redline-черновики. Не публикует и не запускает ревью |
 | `sa-review` | `skills/sa-review/` | ревью по чек-листу закрытия SA |
-| `sa-publish` | `skills/sa-publish/` | preview и публикация утверждённых артефактов в Confluence и Git |
-| `sa` | `skills/sa/` | ведёт цепочку и останавливается на утверждении и на preview |
+| `sa-publish` | `skills/sa-publish/` | draft (redline) и finalize в Confluence и Git |
+| `sa` | `skills/sa/` | ведёт цепочку и останавливается на плане, чтении, утверждении и preview |
 
 Рабочие черновики: `sa-work/<ISSUE-KEY>/` в workspace. Клиенты Jira/Confluence — MCP или соседний [`jira-write`](https://github.com/kamisa1999-chipmunk/jira-write).
 

@@ -12,6 +12,10 @@
 
 Не читать всё подряд.
 
+## Current state
+
+Если изменение затрагивает поведение, контракт, хранение, клиентов или алгоритм — прочитать [../shared/research-current-state.md](../shared/research-current-state.md) и выполнить его до карты артефактов. Карта сама по себе current state не заменяет.
+
 ## Уровни (как в `sa-review`)
 
 ### Уровень 1 — обязательно
@@ -66,7 +70,9 @@ python3 ~/.cursor/skills/sa-spec/scripts/search_confluence.py --cql 'space = BIZ
 
 ## Карта артефактов
 
-Перед генерацией:
+Результат карты писать в `artifact-plan.md`, не в чат вместо файла. Генерация `specs/` — только после подтверждения плана. Форма блока — [workspace.md](workspace.md).
+
+Перед планом:
 
 ```text
 что меняется

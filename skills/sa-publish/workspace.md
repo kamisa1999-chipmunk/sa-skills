@@ -1,6 +1,6 @@
 # Рабочая директория SA
 
-Канон структуры для `sa-spec` и `sa-publish`. Не дублировать в каждом артефакте.
+Канон структуры для `sa-spec` и `sa-publish`. Не дублировать в каждом артефакте. Файл совпадает с `sa-spec/workspace.md`.
 
 Путь:
 
@@ -16,6 +16,7 @@ sa-work/<ISSUE-KEY>/
 sa-work/
   <ISSUE-KEY>/
     context.md
+    artifact-plan.md
     questions.md
     decisions.md
     publish-plan.md
@@ -51,15 +52,18 @@ sa-work/
 Человекочитаемые (писать в шапке файла и в `publish-plan.md`):
 
 ```text
-Черновик
-Есть открытые вопросы
-Готово к ревью
-Проверено
-Утверждено
-Опубликовано
+Generated draft        — сгенерированный черновик, человек ещё не читал
+Reviewed draft         — пользователь прочитал или поправил
+Ready for review       — можно запускать sa-review
+Approved               — утверждено после ревью
+Published              — финализировано и опубликовано
 ```
 
-Машинные значения при необходимости — отдельным полем `status_id` в `publish-plan.md`, не вместо русского статуса.
+Это статусы артефакта, не статусы Jira.
+
+Старые подписи `Черновик`, `Проверено`, `Утверждено`, `Опубликовано` в уже лежащих папках считать так: Черновик → Generated draft, Утверждено → Approved, Опубликовано → Published. «Есть открытые вопросы» — не статус артефакта, а флаг в `questions.md`.
+
+В шапке файла писать английский токен. В разговоре с пользователем можно русскую подпись из таблицы.
 
 ## `context.md`
 
@@ -88,6 +92,67 @@ sa-work/
 ```
 
 Для каждой загруженной страницы Confluence фиксировать `pageId` и версию на момент загрузки (нужно `sa-publish` для проверки конфликтов).
+
+## `artifact-plan.md`
+
+После research и до генерации `specs/`. Пока плана нет — спецификации не писать.
+
+В начале файла:
+
+```markdown
+# Artifact plan — <ISSUE-KEY>
+
+План: ждёт подтверждения
+Этап: planning
+```
+
+`План` — `ждёт подтверждения` или `подтверждён`. `Этап` — одно из: `research`, `planning`, `drafting`, `human-read`, `review`, `fix`, `approval`, `publish`. По этому полю видно, где остановились.
+
+Блок на каждый артефакт:
+
+```markdown
+### GET /api/v1/example
+
+Тип: HTTP
+Операция: update
+Файл: specs/http/get-example.md
+Источник: Confluence pageId=...
+Текущая версия: 17
+
+Current state:
+...
+
+Изменения:
+- update: алгоритм выбора
+- add: вызов нового gRPC
+- replace: описание fallback
+- link: ссылка на новую gRPC-спецификацию
+
+Основание:
+- Jira CAT2-...
+- D-004
+- current state: ...
+
+Затронутые компоненты:
+- ...
+
+Открытые вопросы:
+- Q-003
+
+Статус:
+blocked
+
+Готовность к генерации:
+нет
+```
+
+Операция артефакта: `create`, `update`, `no-change`.
+
+Типы фрагментов внутри документа: `add`, `replace`, `deprecate`, `link`, `no-change`. Смысл — [redline.md](../sa-spec/redline.md).
+
+Статус блока: `blocked`, если есть нерешённый блокирующий `Q-NNN`; иначе `ready`. Утверждение из нерешённого блокирующего вопроса не генерировать.
+
+Каждый change item ссылается на Jira requirement, источник, `D-NNN` или `Q-NNN`.
 
 ## `questions.md`
 
@@ -169,7 +234,7 @@ storeId передаётся в header ...
 ```markdown
 ---
 задача: <ISSUE-KEY>
-статус: Черновик
+статус: Generated draft
 тип: http
 метод: GET
 путь: /api/v3/example
@@ -202,7 +267,8 @@ swagger: url
 ```markdown
 ### specs/http/get-labels-v3.md
 
-Статус: утверждено
+Статус: Approved
+Фаза: finalize
 
 Назначение:
 Confluence
@@ -223,14 +289,22 @@ http
 Существующая страница:
 
 ```markdown
-### specs/db/product-label-store.md
+### specs/http/get-example.md
 
-Статус: утверждено
+Статус: Generated draft
+Фаза: draft
 Назначение: Confluence
 Операция: обновить
 pageId: 123456
 Версия источника при загрузке: 17
-Название: ProductLabel_{storeId}
+Redline: yes
+Human read: нет
+SA review: нет
+Approved: нет
+Finalize: нет
+Название: Get example
+
+Draft publish выкладывает redline и не удаляет старый текст. Finalize — только при `Статус: Approved` и `Фаза: finalize`: зелёное становится обычным текстом, красное зачёркнутое удаляется, маркер черновика снимается.
 ```
 
 Git:

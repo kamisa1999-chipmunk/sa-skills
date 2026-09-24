@@ -26,12 +26,24 @@ FALLBACKS.append((Path(__file__).resolve().parents[3].parent / "jira-write").res
 
 HEADING_RE = re.compile(r"^###\s+(.+?)\s*$")
 FIELD_RE = re.compile(
-    r"^(Статус|Назначение|Операция|Родительская страница|Название|"
-    r"pageId|Версия источника при загрузке|Репозиторий|Путь|"
-    r"Тип|Шаблон|"
+    r"^(Статус|Назначение|Операция|Фаза|Родительская страница|Название|"
+    r"pageId|Версия источника при загрузке|Base version|Репозиторий|Путь|"
+    r"Тип|Шаблон|Redline|Human read|SA review|Approved|"
+    r"Draft publish|Finalize|"
     r"Дата|Цель|URL/pageId/path|Версия после публикации|Commit)\s*:\s*(.*)$",
     re.I,
 )
+
+DRAFT_STATUSES = {
+    "generated draft",
+    "сгенерированный черновик",
+    "reviewed draft",
+    "прочитанный черновик",
+    "ready for review",
+    "готово к ревью",
+}
+FINAL_STATUSES = {"approved", "утверждено"}
+DRAFT_BANNER = "> **Generated draft / Сгенерированный черновик**"
 
 
 def find_scripts_dir() -> Path:
@@ -87,12 +99,22 @@ class PlanItem:
         return self.get("Статус").lower()
 
     @property
+    def phase(self) -> str:
+        raw = self.get("Фаза").lower()
+        if raw in {"draft", "finalize"}:
+            return raw
+        if self.status in FINAL_STATUSES:
+            return "finalize"
+        return ""
+
+    @property
     def target(self) -> str:
         return self.get("Назначение").lower()
 
     @property
     def operation(self) -> str:
-        return self.get("Операция").lower()
+        raw = self.get("Операция").lower()
+        return {"create": "создать", "update": "обновить"}.get(raw, raw)
 
     @property
     def page_id(self) -> str:
@@ -115,7 +137,7 @@ class PlanItem:
 
     @property
     def base_version(self) -> Optional[int]:
-        raw = self.get("Версия источника при загрузке")
+        raw = self.get("Версия источника при загрузке", "Base version")
         if raw.isdigit():
             return int(raw)
         return None
@@ -257,8 +279,38 @@ def _starts_block(line: str) -> bool:
     )
 
 
+def finalize_markdown(text: str) -> str:
+    """Снять redline: красное удалить, зелёное оставить обычным текстом."""
+    text = re.sub(r"\{\-.+?\-\}", "", text, flags=re.S)
+    text = re.sub(r"\{\+(.+?)\+\}", r"\1", text, flags=re.S)
+    kept = []
+    for line in text.splitlines():
+        if "Generated draft / Сгенерированный черновик" in line:
+            continue
+        kept.append(line)
+    return "\n".join(kept)
+
+
+def prepare_markdown(text: str, phase: str) -> str:
+    if phase == "finalize":
+        return finalize_markdown(text)
+    if "Generated draft / Сгенерированный черновик" not in text:
+        text = DRAFT_BANNER + "\n\n" + text
+    return text
+
+
 def inline_md(text: str) -> str:
     text = html.escape(text)
+    text = re.sub(
+        r"\{\+(.+?)\+\}",
+        r'<span style="color:#006600;">\1</span>',
+        text,
+    )
+    text = re.sub(
+        r"\{\-(.+?)\-\}",
+        r'<span style="color:#cc0000;"><s>\1</s></span>',
+        text,
+    )
     text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<em>\1</em>", text)
@@ -342,8 +394,23 @@ def preview_item(
         "skip_reason": "",
         "conflict": None,
     }
-    if item.status != "утверждено":
-        result["skip_reason"] = f"статус «{item.get('Статус') or '—'}»"
+    result["phase"] = item.phase or "—"
+    if item.phase == "draft" and item.status not in DRAFT_STATUSES:
+        result["skip_reason"] = (
+            f"draft publish: статус «{item.get('Статус') or '—'}», "
+            "нужен Generated draft / Reviewed draft / Ready for review"
+        )
+        return result
+    if item.phase == "finalize" and item.status not in FINAL_STATUSES:
+        result["skip_reason"] = (
+            f"finalize: статус «{item.get('Статус') or '—'}», нужен Approved"
+        )
+        return result
+    if not item.phase:
+        result["skip_reason"] = (
+            f"статус «{item.get('Статус') or '—'}»; "
+            "для черновика укажи Фаза: draft, для финала — Approved"
+        )
         return result
     if blocking:
         result["skip_reason"] = "есть блокирующие вопросы"
@@ -418,7 +485,10 @@ def apply_confluence(
     client: ConfluenceClient,
     config_url: str,
 ) -> dict[str, Any]:
-    markdown = (work / item.rel_path).read_text(encoding="utf-8")
+    markdown = prepare_markdown(
+        (work / item.rel_path).read_text(encoding="utf-8"),
+        item.phase,
+    )
     if item.operation == "создать":
         parent = get_page(client, item.parent_id)
         space_key = (parent.get("space") or {}).get("key")
@@ -451,13 +521,8 @@ def apply_confluence(
                 "headings": filled.get("filled_headings") or [],
             },
         }
-    template = None
-    if item.template_id:
-        template = ctemplate.fetch_template(client, item.template_id)
     page = get_page(client, item.page_id)
-    base = template["body"] if template and template.get("body") else (
-        ((page.get("body") or {}).get("storage") or {}).get("value") or ""
-    )
+    base = ((page.get("body") or {}).get("storage") or {}).get("value") or ""
     filled = ctemplate.fill_storage(base, markdown, md_to_storage)
     updated = ctemplate.update_page_body(
         client, page, filled["storage"], title=item.title or page.get("title")
@@ -478,12 +543,21 @@ def apply_confluence(
 
 def patch_plan_text(text: str, item: PlanItem, published: dict[str, Any]) -> str:
     stamp = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d")
+    version = published.get("version")
+    if item.phase == "draft":
+        status_line = "Статус: Generated draft"
+        phase_line = "Draft publish: done"
+    else:
+        status_line = "Статус: Published"
+        phase_line = "Finalize: done"
     extra = (
-        f"\nСтатус: опубликовано\n"
+        f"\n{status_line}\n"
+        f"{phase_line}\n"
         f"Дата: {stamp}\n"
         f"Цель: Confluence\n"
         f"URL/pageId/path: {published.get('url')} (pageId={published.get('pageId')})\n"
-        f"Версия после публикации: {published.get('version')}\n"
+        f"Версия источника при загрузке: {version}\n"
+        f"Версия после публикации: {version}\n"
     )
     heading = f"### {item.rel_path}"
     parts = text.split(heading)
@@ -493,7 +567,15 @@ def patch_plan_text(text: str, item: PlanItem, published: dict[str, Any]) -> str
     next_h = re.search(r"\n### ", rest)
     body = rest[: next_h.start()] if next_h else rest
     tail = rest[next_h.start() :] if next_h else ""
-    body = re.sub(r"(?im)^Статус:\s*.*$", "Статус: опубликовано", body, count=1)
+    new_status = "Generated draft" if item.phase == "draft" else "Published"
+    body = re.sub(r"(?im)^Статус:\s*.*$", f"Статус: {new_status}", body, count=1)
+    if version and re.search(r"(?im)^Версия источника при загрузке:\s*", body):
+        body = re.sub(
+            r"(?im)^Версия источника при загрузке:\s*.*$",
+            f"Версия источника при загрузке: {version}",
+            body,
+            count=1,
+        )
     if "Версия после публикации:" not in body:
         body = body.rstrip() + extra + "\n"
     return parts[0] + heading + body + tail
@@ -505,7 +587,7 @@ def format_human(rows: list[dict[str, Any]]) -> str:
     lines = [f"К публикации готово {len(ready)} артефактов:\n"]
     for row in ready:
         lines.append(f"{row['index']}. {Path(row['file']).name}")
-        lines.append(f"   → {row.get('target')}")
+        lines.append(f"   → {row.get('target')} / фаза {row.get('phase') or '—'}")
         if (row.get("target") or "").lower() == "git":
             lines.append(f"   → {row.get('git_path')}")
             lines.append(f"   → {row.get('operation')}")
